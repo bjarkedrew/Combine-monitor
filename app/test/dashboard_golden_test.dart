@@ -15,10 +15,11 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     final controller = MonitorController();
-    addTearDown(controller.dispose);
     const goldenKey = ValueKey('dashboard-golden');
     await tester.pumpWidget(MaterialApp(theme: AppTheme.dark, home: RepaintBoundary(key: goldenKey, child: DashboardScreen(controller: controller))));
     await tester.pump(const Duration(milliseconds: 600));
     await expectLater(find.byKey(goldenKey), matchesGoldenFile('goldens/dashboard-v0.2.png'));
+    controller.dispose();
+    await tester.pumpWidget(const SizedBox.shrink());
   }, skip: !generateGolden);
 }

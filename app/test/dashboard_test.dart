@@ -33,7 +33,6 @@ void main() {
     final guards = GuardConfig.masseyFerguson29XpDefaults();
     guards.firstWhere((guard) => guard.id == 'chopper').active = false;
     final controller = MonitorController(initialGuards: guards);
-    addTearDown(controller.dispose);
     await tester.pumpWidget(MaterialApp(theme: AppTheme.dark, home: DashboardScreen(controller: controller)));
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.text('Snitter'), findsNothing);
@@ -42,5 +41,7 @@ void main() {
     expect(find.text('Minimum'), findsOneWidget);
     expect(find.text('Alarmforsinkelse'), findsOneWidget);
     expect(find.byType(DashboardScreen), findsOneWidget);
+    controller.dispose();
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 }
