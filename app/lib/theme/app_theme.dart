@@ -18,10 +18,13 @@ abstract final class AppColors {
 }
 
 abstract final class AppTheme {
-  static ThemeData get dark {
+  static ThemeData get dark => darkWithFont();
+
+  static ThemeData darkWithFont([String? fontFamily]) {
     final scheme = ColorScheme.fromSeed(seedColor: AppColors.accent, brightness: Brightness.dark, surface: AppColors.panel);
     return ThemeData(
       useMaterial3: true,
+      fontFamily: fontFamily,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: scheme,

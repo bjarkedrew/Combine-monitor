@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:combine_monitor/screens/dashboard_screen.dart';
 import 'package:combine_monitor/services/monitor_controller.dart';
 import 'package:combine_monitor/theme/app_theme.dart';
@@ -23,7 +21,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     final controller = MonitorController();
     const goldenKey = ValueKey('dashboard-golden');
-    await tester.pumpWidget(MaterialApp(theme: AppTheme.dark.copyWith(fontFamily: 'Roboto'), home: RepaintBoundary(key: goldenKey, child: DashboardScreen(controller: controller))));
+    await tester.pumpWidget(MaterialApp(theme: AppTheme.darkWithFont('Roboto'), home: RepaintBoundary(key: goldenKey, child: DashboardScreen(controller: controller))));
     await tester.pump(const Duration(milliseconds: 600));
     await expectLater(find.byKey(goldenKey), matchesGoldenFile('goldens/dashboard-v0.2.png'));
     controller.dispose();
