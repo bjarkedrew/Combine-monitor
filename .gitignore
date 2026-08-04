@@ -1,0 +1,9 @@
+.dart_tool/
+.flutter-plugins*
+.metadata
+app/android/.gradle/
+app/build/
+firmware/.pio/
+*.iml
+work/
+outputs/
