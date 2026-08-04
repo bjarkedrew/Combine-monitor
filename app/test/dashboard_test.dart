@@ -19,8 +19,8 @@ void main() {
       await tester.pumpWidget(const CombineMonitorApp());
       await tester.pump(const Duration(milliseconds: 600));
       expect(find.text('MASSEY FERGUSON 29 XP'), findsOneWidget);
-      expect(find.text('Tærskecylinder'), findsOneWidget);
-      expect(find.text('Tømmesnegl'), findsOneWidget);
+      expect(find.text('TÆRSKECYLINDER'), findsOneWidget);
+      expect(find.text('TØMMESNEGL'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }
