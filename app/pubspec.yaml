@@ -1,13 +1,14 @@
 name: combine_monitor
 description: Retrofit combine harvester monitor.
 publish_to: none
-version: 0.2.0+2
+version: 0.3.0+3
 environment:
   sdk: ">=3.4.0 <4.0.0"
 dependencies:
   flutter:
     sdk: flutter
   shared_preferences: 2.5.3
+  flutter_svg: 2.2.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -15,6 +16,8 @@ dev_dependencies:
   golden_toolkit: 0.15.0
 flutter:
   uses-material-design: true
+  assets:
+    - assets/machines/mf29xp/
   fonts:
     - family: Roboto
       fonts:

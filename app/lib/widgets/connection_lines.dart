@@ -1,34 +1,59 @@
 import 'package:flutter/material.dart';
 
+import '../models/guard.dart';
 import '../theme/app_theme.dart';
 
-class ConnectionLines extends CustomPainter {
-  const ConnectionLines({required this.leftCount, required this.rightCount});
-  final int leftCount;
-  final int rightCount;
+class GuardConnection {
+  const GuardConnection(this.id, this.status);
+  final String id;
+  final GuardStatus status;
+}
 
-  static const leftAnchors = [Offset(.455, .32), Offset(.43, .45), Offset(.43, .59), Offset(.455, .72)];
-  static const rightAnchors = [Offset(.57, .34), Offset(.6, .47), Offset(.6, .61), Offset(.56, .73)];
+class ConnectionLines extends CustomPainter {
+  const ConnectionLines({required this.left, required this.right});
+  final List<GuardConnection> left;
+  final List<GuardConnection> right;
+
+  // Normalized dashboard coordinates, mirrored in sensor_points.json.
+  static const anchors = <String, Offset>{
+    'threshingDrum': Offset(.430, .575),
+    'strawWalkers': Offset(.590, .505),
+    'fan': Offset(.475, .690),
+    'chopper': Offset(.665, .665),
+    'cleanGrainElevator': Offset(.565, .420),
+    'returnsElevator': Offset(.610, .545),
+    'cleaningShoe': Offset(.555, .640),
+    'unloadingAuger': Offset(.665, .310),
+  };
+
+  Color _color(GuardStatus status) => switch (status) {
+        GuardStatus.normal => AppColors.accent,
+        GuardStatus.warning => AppColors.warning,
+        GuardStatus.alarm => AppColors.alarm,
+        GuardStatus.noSignal => AppColors.noSignal,
+      };
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = AppColors.line..strokeWidth = 1.15..style = PaintingStyle.stroke;
-    final dot = Paint()..color = AppColors.accent;
-    for (var i = 0; i < leftCount; i++) {
-      final start = Offset(size.width * .245, size.height * (i + .5) / leftCount);
-      final anchor = leftAnchors[i.clamp(0, leftAnchors.length - 1).toInt()];
+    _paintRail(canvas, size, left, true);
+    _paintRail(canvas, size, right, false);
+  }
+
+  void _paintRail(Canvas canvas, Size size, List<GuardConnection> items, bool isLeft) {
+    for (var i = 0; i < items.length; i++) {
+      final item = items[i];
+      final anchor = anchors[item.id] ?? const Offset(.5, .5);
+      final start = Offset(size.width * (isLeft ? .245 : .755), size.height * (i + .5) / items.length);
+      final elbow = Offset(size.width * (isLeft ? .325 : .675), start.dy);
       final end = Offset(size.width * anchor.dx, size.height * anchor.dy);
-      canvas.drawPath(Path()..moveTo(start.dx, start.dy)..lineTo(size.width * .32, start.dy)..lineTo(end.dx, end.dy), paint);
-      canvas.drawCircle(end, 2.7, dot);
-    }
-    for (var i = 0; i < rightCount; i++) {
-      final start = Offset(size.width * .755, size.height * (i + .5) / rightCount);
-      final anchor = rightAnchors[i.clamp(0, rightAnchors.length - 1).toInt()];
-      final end = Offset(size.width * anchor.dx, size.height * anchor.dy);
-      canvas.drawPath(Path()..moveTo(start.dx, start.dy)..lineTo(size.width * .68, start.dy)..lineTo(end.dx, end.dy), paint);
-      canvas.drawCircle(end, 2.7, dot);
+      final color = _color(item.status);
+      final paint = Paint()..color = color.withValues(alpha: .72)..strokeWidth = 1.25..style = PaintingStyle.stroke;
+      canvas.drawPath(Path()..moveTo(start.dx, start.dy)..lineTo(elbow.dx, elbow.dy)..lineTo(end.dx, end.dy), paint);
+      canvas.drawCircle(end, 4.5, Paint()..color = AppColors.background);
+      canvas.drawCircle(end, 3, Paint()..color = color);
     }
   }
 
-  @override bool shouldRepaint(ConnectionLines oldDelegate) => oldDelegate.leftCount != leftCount || oldDelegate.rightCount != rightCount;
+  @override
+  bool shouldRepaint(ConnectionLines oldDelegate) => oldDelegate.left != left || oldDelegate.right != right;
 }

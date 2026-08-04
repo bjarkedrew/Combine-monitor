@@ -32,10 +32,13 @@ class DashboardScreen extends StatelessWidget {
                     SizedBox(height: compact ? 8 : 14),
                     Expanded(
                       child: Stack(children: [
-                        Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: ConnectionLines(leftCount: left.length, rightCount: right.length)))),
+                        Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: ConnectionLines(
+                          left: left.map((guard) => GuardConnection(guard.id, controller.statusFor(guard))).toList(),
+                          right: right.map((guard) => GuardConnection(guard.id, controller.statusFor(guard))).toList(),
+                        )))),
                         Row(children: [
                           Expanded(flex: compact ? 28 : 25, child: _GuardRail(guards: left, controller: controller)),
-                          Expanded(flex: compact ? 44 : 50, child: const Padding(padding: EdgeInsets.symmetric(horizontal: 18), child: Center(child: CombineIllustration()))),
+                          Expanded(flex: compact ? 44 : 50, child: const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Center(child: CombineIllustration()))),
                           Expanded(flex: compact ? 28 : 25, child: _GuardRail(guards: right, controller: controller)),
                         ]),
                       ]),

@@ -27,32 +27,32 @@ class GuardCard extends StatelessWidget {
       label: '${guard.name}, $valueText, ${status.name}',
       child: Material(
         color: AppColors.panel,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         child: InkWell(
           key: ValueKey('guard-${guard.id}'),
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           child: Container(
             constraints: const BoxConstraints(minHeight: 72, maxHeight: 92),
             padding: const EdgeInsets.fromLTRB(14, 11, 12, 10),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: statusColor.withValues(alpha: .7), width: 1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.panelBorder, width: 1),
             ),
             child: Row(children: [
               Container(width: 4, height: 34, decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(4))),
               const SizedBox(width: 11),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text(guard.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.text, fontSize: 14, fontWeight: FontWeight.w600)),
+                  Text(guard.name.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.mutedText, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: .8)),
                   const SizedBox(height: 3),
                   Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    Flexible(child: Text(valueText, maxLines: 1, style: TextStyle(color: statusColor, fontSize: isSwitch ? 20 : 27, height: 1, fontWeight: FontWeight.w700, fontFeatures: const [FontFeature.tabularFigures()]))),
+                    Flexible(child: Text(valueText, maxLines: 1, style: TextStyle(color: AppColors.text, fontSize: isSwitch ? 19 : 29, height: 1, fontWeight: FontWeight.w700, fontFeatures: const [FontFeature.tabularFigures()]))),
                     if (!isSwitch) const Padding(padding: EdgeInsets.only(left: 5, bottom: 2), child: Text('RPM', style: TextStyle(color: AppColors.mutedText, fontSize: 11, letterSpacing: .7))),
                   ]),
                 ]),
               ),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.mutedText, size: 18),
+              Container(width: 6, height: 6, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
             ]),
           ),
         ),

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "viewBox": {"width": 720, "height": 420},
+  "anchors": {
+    "threshingDrum": {"x": 0.430, "y": 0.575, "component": "front-threshing-drum"},
+    "strawWalkers": {"x": 0.590, "y": 0.505, "component": "rear-straw-walkers"},
+    "fan": {"x": 0.475, "y": 0.690, "component": "cleaning-fan"},
+    "chopper": {"x": 0.665, "y": 0.665, "component": "rear-chopper"},
+    "cleanGrainElevator": {"x": 0.565, "y": 0.420, "component": "clean-grain-elevator"},
+    "returnsElevator": {"x": 0.610, "y": 0.545, "component": "returns-elevator"},
+    "cleaningShoe": {"x": 0.555, "y": 0.640, "component": "cleaning-shoe"},
+    "unloadingAuger": {"x": 0.665, "y": 0.310, "component": "unloading-auger"}
+  }
+}

@@ -2,6 +2,11 @@
   "schemaVersion": 1,
   "id": "massey_ferguson_29_xp",
   "name": "Massey Ferguson 29 XP",
+  "illustration": {
+    "assetRoot": "assets/machines/mf29xp",
+    "viewBox": {"width": 720, "height": 420},
+    "sensorPoints": "assets/machines/mf29xp/sensor_points.json"
+  },
   "guards": [
     {"id":"threshingDrum","side":"left","name":"Tærskecylinder","signalType":"pulse","input":0,"pulsesPerRevolution":1,"minRpm":400,"maxRpm":1200,"warningRpm":450,"alarmDelaySeconds":3,"buzzer":true,"active":true},
     {"id":"strawWalkers","side":"left","name":"Halmrystere","signalType":"pulse","input":1,"pulsesPerRevolution":1,"minRpm":160,"maxRpm":320,"warningRpm":180,"alarmDelaySeconds":4,"buzzer":true,"active":true},
