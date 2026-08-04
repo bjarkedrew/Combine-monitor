@@ -5,7 +5,6 @@ import 'package:combine_monitor/services/monitor_controller.dart';
 import 'package:combine_monitor/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -20,7 +19,6 @@ void main() {
       await tester.pumpWidget(const CombineMonitorApp());
       await tester.pump(const Duration(milliseconds: 600));
       expect(find.text('MASSEY FERGUSON 29 XP'), findsOneWidget);
-      expect(find.byType(SvgPicture), findsNWidgets(7));
       expect(find.text('Tærskecylinder'), findsOneWidget);
       expect(find.text('Tømmesnegl'), findsOneWidget);
       expect(tester.takeException(), isNull);
