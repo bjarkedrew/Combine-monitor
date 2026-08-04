@@ -1,6 +1,6 @@
 # Combine Monitor
 
-Combine Monitor is an Android-first retrofit monitor for older combine harvesters, initially the Dronningborg D7500. The landscape Flutter dashboard shows the machine, active guards, connection state, and compact navigation to settings and alarms.
+Combine Monitor is an Android-first retrofit monitor for older combine harvesters. The first target machine is the **Massey Ferguson 29 XP**. The landscape Flutter dashboard shows the machine, active guards, connection state, and compact navigation to settings and alarms.
 
 > **Safety:** Never connect 12 V machine wiring directly to an ESP32. Use a protected interface with isolation or level conversion. Automotive power requires a fuse, reverse-polarity protection, TVS suppression, and filtering.
 
@@ -31,4 +31,4 @@ Run `pio run` in `firmware/`; use `pio run --target upload` to flash. Demo telem
 
 ## Limitations
 
-v0.1 is simulator-first. Live WebSocket transport is prepared by the shared protocol but not yet enabled in the app. The hardware notes are not a production schematic. Calibration must be verified on the actual D7500. Camera, GPS, hectare/yield/moisture sensing, cloud features, and advanced animation are intentionally out of scope.
+v0.2 remains simulator-first. Live WebSocket transport is prepared by the shared protocol but not yet enabled in the app. The hardware notes are not a production schematic. Calibration must be verified on the actual MF 29 XP. Camera, GPS, hectare/yield/moisture sensing, cloud features, and advanced animation are intentionally out of scope.

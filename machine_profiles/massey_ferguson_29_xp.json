@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "massey_ferguson_29_xp",
+  "name": "Massey Ferguson 29 XP",
+  "guards": [
+    {"id":"threshingDrum","side":"left","name":"Tærskecylinder","signalType":"pulse","input":0,"pulsesPerRevolution":1,"minRpm":400,"maxRpm":1200,"warningRpm":450,"alarmDelaySeconds":3,"buzzer":true,"active":true},
+    {"id":"strawWalkers","side":"left","name":"Halmrystere","signalType":"pulse","input":1,"pulsesPerRevolution":1,"minRpm":160,"maxRpm":320,"warningRpm":180,"alarmDelaySeconds":4,"buzzer":true,"active":true},
+    {"id":"fan","side":"left","name":"Underblæser","signalType":"pulse","input":2,"pulsesPerRevolution":1,"minRpm":600,"maxRpm":1100,"warningRpm":650,"alarmDelaySeconds":3,"buzzer":true,"active":true},
+    {"id":"chopper","side":"left","name":"Snitter","signalType":"pulse","input":3,"pulsesPerRevolution":1,"minRpm":2400,"maxRpm":3400,"warningRpm":2550,"alarmDelaySeconds":2,"buzzer":true,"active":true},
+    {"id":"cleanGrainElevator","side":"right","name":"Kornelevator","signalType":"pulse","input":4,"pulsesPerRevolution":1,"minRpm":330,"maxRpm":520,"warningRpm":360,"alarmDelaySeconds":3,"buzzer":true,"active":true},
+    {"id":"returnsElevator","side":"right","name":"Returelevator","signalType":"pulse","input":5,"pulsesPerRevolution":1,"minRpm":300,"maxRpm":500,"warningRpm":330,"alarmDelaySeconds":3,"buzzer":true,"active":true},
+    {"id":"cleaningShoe","side":"right","name":"Renseri/sold","signalType":"pulse","input":6,"pulsesPerRevolution":1,"minRpm":230,"maxRpm":360,"warningRpm":250,"alarmDelaySeconds":4,"buzzer":true,"active":true},
+    {"id":"unloadingAuger","side":"right","name":"Tømmesnegl","signalType":"switch","input":7,"pulsesPerRevolution":1,"minRpm":1,"maxRpm":1,"warningRpm":1,"alarmDelaySeconds":1,"buzzer":false,"active":true}
+  ]
+}

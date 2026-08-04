@@ -1,81 +1,24 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-void main() async { WidgetsFlutterBinding.ensureInitialized(); await SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft,DeviceOrientation.landscapeRight]); runApp(const CombineMonitorApp()); }
-enum Side { left,right }
-enum Status { green,yellow,red,grey }
-enum SimMode { normal,low,disconnected }
+import 'screens/dashboard_screen.dart';
+import 'services/monitor_controller.dart';
+import 'theme/app_theme.dart';
 
-class Guard {
-  Guard(this.id,this.side,this.name,this.input,this.min,this.max,this.warning,{this.signal='pulse',this.ppr=1,this.delay=3,this.buzzer=true,this.active=true});
-  final String id; final Side side; String name,signal; int input,delay; double min,max,warning,ppr; bool buzzer,active;
-  Map<String,dynamic> toJson()=>{'id':id,'side':side.name,'name':name,'signal':signal,'input':input,'min':min,'max':max,'warning':warning,'ppr':ppr,'delay':delay,'buzzer':buzzer,'active':active};
-  factory Guard.fromJson(Map<String,dynamic> j)=>Guard(j['id'] as String,j['side']=='right'?Side.right:Side.left,j['name'] as String,(j['input'] as num).toInt(),(j['min'] as num).toDouble(),(j['max'] as num).toDouble(),(j['warning'] as num).toDouble(),signal:j['signal'] as String,ppr:(j['ppr'] as num).toDouble(),delay:(j['delay'] as num).toInt(),buzzer:j['buzzer'] as bool,active:j['active'] as bool);
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+  runApp(const CombineMonitorApp());
 }
-class Frame { const Frame(this.uptime,this.values); final int uptime; final Map<String,double> values; }
-abstract class TelemetrySource { Stream<Frame> get frames; bool get connected; void dispose(); }
-class SimulatorSource implements TelemetrySource {
-  SimulatorSource(this.guards){_timer=Timer.periodic(const Duration(milliseconds:500),(_)=>_tick());}
-  final List<Guard> guards; final _out=StreamController<Frame>.broadcast(); final _random=Random(7500); late final Timer _timer; int _uptime=0; SimMode mode=SimMode.normal; String lowId='threshingDrum'; bool auger=false;
-  @override Stream<Frame> get frames=>_out.stream; @override bool get connected=>mode!=SimMode.disconnected;
-  void _tick(){_uptime+=500;if(!connected)return;final v=<String,double>{};for(final g in guards){if(g.id=='unloadingAuger'){v[g.id]=auger?1:0;continue;}final center=g.min+(g.max-g.min)*.58;v[g.id]=mode==SimMode.low&&g.id==lowId?g.min*.72:center+(_random.nextDouble()-.5)*max(10,center*.05);}_out.add(Frame(_uptime,v));}
-  @override void dispose(){_timer.cancel();_out.close();}
+
+class CombineMonitorApp extends StatefulWidget {
+  const CombineMonitorApp({super.key});
+  @override State<CombineMonitorApp> createState() => _CombineMonitorAppState();
 }
-class Alarm { Alarm(this.guardId,this.name,this.time); final String guardId,name; final DateTime time; bool acknowledged=false; }
-class Monitor extends ChangeNotifier {
-  Monitor():guards=defaults(){source=SimulatorSource(guards);_sub=source.frames.listen(_receive);_clock=Timer.periodic(const Duration(seconds:1),(_)=>notifyListeners());_load();}
-  final List<Guard> guards; late final SimulatorSource source; late final StreamSubscription<Frame> _sub; late final Timer _clock; final List<Alarm> alarms=[]; final Map<String,DateTime> _below={}; final Set<String> _activeAlarms={}; Frame? frame; DateTime? _received;
-  bool get connected=>source.connected&&_received!=null&&DateTime.now().difference(_received!)<const Duration(seconds:3);
-  void _receive(Frame value){frame=value;_received=DateTime.now();_evaluate();notifyListeners();}
-  void _evaluate(){final now=DateTime.now();for(final g in guards.where((g)=>g.active&&g.id!='unloadingAuger')){final rpm=frame?.values[g.id];if(rpm!=null&&rpm<g.min){_below.putIfAbsent(g.id,()=>now);if(now.difference(_below[g.id]!).inSeconds>=g.delay&&_activeAlarms.add(g.id))alarms.insert(0,Alarm(g.id,g.name,now));}else{_below.remove(g.id);_activeAlarms.remove(g.id);}}}
-  Status status(Guard g){if(!g.active||!connected||frame?.values[g.id]==null)return Status.grey;if(_activeAlarms.contains(g.id))return Status.red;if(g.id!='unloadingAuger'&&frame!.values[g.id]!<g.warning)return Status.yellow;return Status.green;}
-  void mode(SimMode value){source.mode=value;if(value==SimMode.disconnected){frame=null;_received=null;}notifyListeners();}
-  void lowGuard(String id){source.lowId=id;notifyListeners();} void auger(bool v){source.auger=v;notifyListeners();} void acknowledge(Alarm a){a.acknowledged=true;notifyListeners();}
-  Future<void> save()async{final p=await SharedPreferences.getInstance();await p.setString('guards.v1',jsonEncode(guards.map((g)=>g.toJson()).toList()));notifyListeners();}
-  Future<void> _load()async{final raw=(await SharedPreferences.getInstance()).getString('guards.v1');if(raw==null)return;try{final loaded=(jsonDecode(raw) as List).map((e)=>Guard.fromJson(e as Map<String,dynamic>));guards..clear()..addAll(loaded);notifyListeners();}on FormatException{/* defaults */}}
-  @override void dispose(){_sub.cancel();_clock.cancel();source.dispose();super.dispose();}
-  static List<Guard> defaults()=>[Guard('threshingDrum',Side.left,'Tærskecylinder',0,400,1200,450),Guard('strawWalkers',Side.left,'Halmrystere',1,160,320,180,delay:4),Guard('fan',Side.left,'Underblæser',2,600,1100,650),Guard('chopper',Side.left,'Snitter',3,2400,3400,2550,delay:2),Guard('cleanGrainElevator',Side.right,'Kornelevator',4,330,520,360),Guard('returnsElevator',Side.right,'Returelevator',5,300,500,330),Guard('cleaningShoe',Side.right,'Renseri/sold',6,230,360,250,delay:4),Guard('unloadingAuger',Side.right,'Tømmesnegl',7,1,1,1,signal:'switch',buzzer:false)];
+
+class _CombineMonitorAppState extends State<CombineMonitorApp> {
+  late final MonitorController controller;
+  @override void initState() { super.initState(); controller = MonitorController(); }
+  @override void dispose() { controller.dispose(); super.dispose(); }
+  @override Widget build(BuildContext context) => MaterialApp(debugShowCheckedModeBanner: false, title: 'Combine Monitor', theme: AppTheme.dark, home: DashboardScreen(controller: controller));
 }
-class CombineMonitorApp extends StatefulWidget {const CombineMonitorApp({super.key});@override State<CombineMonitorApp> createState()=>_AppState();}
-class _AppState extends State<CombineMonitorApp>{late final Monitor monitor;@override void initState(){super.initState();monitor=Monitor();}@override void dispose(){monitor.dispose();super.dispose();}@override Widget build(BuildContext context)=>MaterialApp(debugShowCheckedModeBanner:false,title:'Combine Monitor',theme:ThemeData.dark(useMaterial3:true).copyWith(scaffoldBackgroundColor:const Color(0xff0b1113),colorScheme:ColorScheme.fromSeed(seedColor:const Color(0xffd8a928),brightness:Brightness.dark)),home:Dashboard(monitor));}
-class Dashboard extends StatelessWidget {
-  const Dashboard(this.monitor,{super.key}); final Monitor monitor;
-  @override Widget build(BuildContext context)=>ListenableBuilder(listenable:monitor,builder:(context,_){
-    final left=monitor.guards.where((g)=>g.active&&g.side==Side.left).toList();
-    final right=monitor.guards.where((g)=>g.active&&g.side==Side.right).toList();
-    return Scaffold(body:SafeArea(child:Padding(padding:const EdgeInsets.all(16),child:Column(children:[
-      TopBar(monitor),const SizedBox(height:8),Expanded(child:Row(children:[
-        Expanded(child:GuardColumn(left,monitor,true)),
-        Expanded(flex:2,child:CustomPaint(painter:Lines(left.length,right.length),child:const Center(child:Machine()))),
-        Expanded(child:GuardColumn(right,monitor,false)),
-      ])),
-    ]))));
-  });
-}
-class TopBar extends StatelessWidget {const TopBar(this.monitor,{super.key});final Monitor monitor;@override Widget build(BuildContext context)=>Row(children:[const Text('DRONNINGBORG D7500',style:TextStyle(fontWeight:FontWeight.w800,letterSpacing:1.4)),const Spacer(),Icon(monitor.connected?Icons.wifi:Icons.wifi_off,color:monitor.connected?Colors.greenAccent:Colors.redAccent),const SizedBox(width:7),Text(monitor.connected?'Simulator forbundet':'Forbindelse mistet'),IconButton(tooltip:'Alarmer',onPressed:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>AlarmsPage(monitor))),icon:const Icon(Icons.notifications_outlined)),IconButton(tooltip:'Opsætning',onPressed:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>SettingsPage(monitor))),icon:const Icon(Icons.tune))]);}
-class GuardColumn extends StatelessWidget {const GuardColumn(this.guards,this.monitor,this.right,{super.key});final List<Guard> guards;final Monitor monitor;final bool right;@override Widget build(BuildContext context)=>Column(mainAxisAlignment:MainAxisAlignment.spaceEvenly,children:guards.map((g)=>GuardCard(g,monitor.status(g),monitor.frame?.values[g.id],right)).toList());}
-class GuardCard extends StatelessWidget {const GuardCard(this.guard,this.status,this.rpm,this.right,{super.key});final Guard guard;final Status status;final double? rpm;final bool right;Color get color=>switch(status){Status.green=>const Color(0xff54d68b),Status.yellow=>const Color(0xffffc857),Status.red=>const Color(0xffff5c5c),Status.grey=>const Color(0xff718087)};@override Widget build(BuildContext context)=>Container(width:220,padding:const EdgeInsets.all(12),decoration:BoxDecoration(color:const Color(0xff141d20),border:Border(left:right?BorderSide.none:BorderSide(color:color,width:4),right:right?BorderSide(color:color,width:4):BorderSide.none),borderRadius:BorderRadius.circular(12)),child:Column(crossAxisAlignment:right?CrossAxisAlignment.end:CrossAxisAlignment.start,children:[Text(guard.name,style:const TextStyle(fontWeight:FontWeight.w600)),Text(guard.id=='unloadingAuger'?(rpm==1?'AKTIV':'STOPPET'):(rpm==null?'— RPM':'${rpm!.round()} RPM'),style:TextStyle(color:color,fontSize:20,fontWeight:FontWeight.w800))]));}
-class Machine extends StatelessWidget {const Machine({super.key});@override Widget build(BuildContext context)=>Semantics(label:'Stiliseret Dronningborg D7500',child:SizedBox(width:310,height:210,child:Stack(children:[Positioned(left:50,top:42,child:Container(width:210,height:105,decoration:BoxDecoration(color:const Color(0xffc72f32),borderRadius:BorderRadius.circular(15)))),Positioned(left:170,top:18,child:Container(width:72,height:68,decoration:BoxDecoration(color:const Color(0xff9cc6ce),border:Border.all(color:Colors.white24,width:3),borderRadius:BorderRadius.circular(8)))),const Positioned(left:60,top:116,child:Wheel(78)),const Positioned(left:216,top:127,child:Wheel(55)),Positioned(left:16,top:143,child:Container(width:275,height:18,color:const Color(0xffd8a928))),const Positioned(left:83,top:75,child:Text('D7500',style:TextStyle(fontWeight:FontWeight.w900,fontSize:22))) ])));}
-class Wheel extends StatelessWidget {const Wheel(this.size,{super.key});final double size;@override Widget build(BuildContext context)=>Container(width:size,height:size,decoration:BoxDecoration(shape:BoxShape.circle,color:const Color(0xff111111),border:Border.all(color:const Color(0xff4b5355),width:8)));}
-class Lines extends CustomPainter {Lines(this.left,this.right);final int left,right;@override void paint(Canvas c,Size s){final p=Paint()..color=const Color(0xff536166)..strokeWidth=1.2;for(var i=0;i<left;i++){c.drawLine(Offset(0,s.height*(i+.5)/left),Offset(s.width*.32,s.height*.48),p);}for(var i=0;i<right;i++){c.drawLine(Offset(s.width,s.height*(i+.5)/right),Offset(s.width*.68,s.height*.48),p);}}@override bool shouldRepaint(Lines old)=>old.left!=left||old.right!=right;}
-class SettingsPage extends StatelessWidget {
-  const SettingsPage(this.monitor,{super.key}); final Monitor monitor;
-  @override Widget build(BuildContext context)=>ListenableBuilder(listenable:monitor,builder:(context,_)=>Scaffold(
-    appBar:AppBar(title:const Text('Opsætning'),actions:[TextButton.icon(onPressed:monitor.save,icon:const Icon(Icons.save),label:const Text('Gem'))]),
-    body:ListView(padding:const EdgeInsets.all(16),children:[
-      SegmentedButton<SimMode>(segments:const [ButtonSegment(value:SimMode.normal,label:Text('Normal')),ButtonSegment(value:SimMode.low,label:Text('Lav RPM')),ButtonSegment(value:SimMode.disconnected,label:Text('Afbryd'))],selected:{monitor.source.mode},onSelectionChanged:(s)=>monitor.mode(s.first)),
-      DropdownButtonFormField<String>(value:monitor.source.lowId,decoration:const InputDecoration(labelText:'Vagt med lav RPM'),items:monitor.guards.where((g)=>g.id!='unloadingAuger').map((g)=>DropdownMenuItem(value:g.id,child:Text(g.name))).toList(),onChanged:(v){if(v!=null)monitor.lowGuard(v);}),
-      SwitchListTile(title:const Text('Tømmesnegl aktiv'),value:monitor.source.auger,onChanged:monitor.auger),const Divider(),
-      ...monitor.guards.map((g)=>Card(child:ExpansionTile(title:Text(g.name),leading:Switch(value:g.active,onChanged:(v){g.active=v;monitor.save();}),children:[Padding(padding:const EdgeInsets.all(12),child:Wrap(spacing:12,runSpacing:12,children:[
-        field('Navn',g.name,(v)=>g.name=v),number('Indgang',g.input.toDouble(),(v)=>g.input=v.round()),number('Pulser/omdr.',g.ppr,(v)=>g.ppr=v),number('Min. RPM',g.min,(v)=>g.min=v),number('Maks. RPM',g.max,(v)=>g.max=v),number('Gul grænse',g.warning,(v)=>g.warning=v),number('Alarmforsinkelse',g.delay.toDouble(),(v)=>g.delay=v.round()),SizedBox(width:220,child:SwitchListTile(title:const Text('Summer'),value:g.buzzer,onChanged:(v)=>g.buzzer=v)),
-      ]))]))),
-    ]),
-  ));
-  Widget field(String l,String v,ValueChanged<String> c)=>SizedBox(width:220,child:TextFormField(initialValue:v,decoration:InputDecoration(labelText:l),onChanged:c));
-  Widget number(String l,double v,ValueChanged<double> c)=>SizedBox(width:180,child:TextFormField(initialValue:'${v.round()}',keyboardType:TextInputType.number,decoration:InputDecoration(labelText:l),onChanged:(x){final n=double.tryParse(x);if(n!=null)c(n);}));
-}
-class AlarmsPage extends StatelessWidget {const AlarmsPage(this.monitor,{super.key});final Monitor monitor;@override Widget build(BuildContext context)=>ListenableBuilder(listenable:monitor,builder:(context,_)=>Scaffold(appBar:AppBar(title:const Text('Alarmhistorik')),body:monitor.alarms.isEmpty?const Center(child:Text('Ingen alarmer registreret')):ListView.builder(itemCount:monitor.alarms.length,itemBuilder:(context,i){final a=monitor.alarms[i];return ListTile(leading:Icon(a.acknowledged?Icons.check_circle:Icons.warning_amber,color:a.acknowledged?Colors.grey:Colors.red),title:Text(a.name),subtitle:Text(a.time.toLocal().toString()),trailing:a.acknowledged?const Text('Kvitteret'):FilledButton(onPressed:()=>monitor.acknowledge(a),child:const Text('Kvitter')));})));}
