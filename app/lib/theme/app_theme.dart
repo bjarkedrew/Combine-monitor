@@ -18,7 +18,7 @@ abstract final class AppColors {
 }
 
 abstract final class AppTheme {
-  static ThemeData get dark => darkWithFont();
+  static ThemeData get dark => darkWithFont('Roboto');
 
   static ThemeData darkWithFont([String? fontFamily]) {
     final scheme = ColorScheme.fromSeed(seedColor: AppColors.accent, brightness: Brightness.dark, surface: AppColors.panel);
